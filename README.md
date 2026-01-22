@@ -1,38 +1,55 @@
-# sv
+# SvelteKit Prisma template
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## Setup
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+```bash
+pnpm install
 ```
 
-## Developing
+**NOTE:** The `better-sqlite3` driver needs to be built but pnpm requires approval.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```bash
+pnpm approve-builds
 ```
 
-## Building
+_Todo:_ There might be a flag to automatically approve and build when installing?
 
-To create a production version of your app:
+## Prisma
 
-```sh
-npm run build
+### Commands at a glance
+
+To run a migration:
+
+```bash
+pnpm prisma migrate dev --name <NAME>
 ```
 
-You can preview the production build with `npm run preview`.
+To generate the ORM
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+pnpm prisma generate
+```
+
+### Details and setup
+
+**TODO:**
+
+- Show how to setup env file with DATABASE_URL
+
+The `./prisma/schema.prisma` schema file not only defines
+the structure of the ORM but also the structure for the database as a whole.
+
+The `prisma.config.ts` configuration file contains:
+
+- A path to the schema file
+- A path to the migrations directory, and
+- A URL to the data source
+
+By default our ORM will use SQLite as its provideer, and so
+the configuration file provides an SQLite database file as the data source.
+
+If starting from scratch, running an initial migration will create this file.
+
+```bash
+`pnpm prisma migrate dev --name init`
+```
