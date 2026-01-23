@@ -10,7 +10,7 @@
 <div class="flex min-h-screen flex-col">
 	<header class="h-header flex items-center justify-between border-b p-2">
 		<div class="flex items-center gap-4">
-			<a href={resolve('/')}>Home</a>
+			<Button variant="link" href={resolve('/')}>Home</Button>
 		</div>
 		<div class="flex items-center gap-4">
 			<Button onclick={toggleMode} variant="ghost" size="icon" class="relative overflow-clip">
