@@ -4,9 +4,6 @@ node_modules
 generated
 db.sqlite
 
-# Components
-src/lib/components/ui
-
 # Output
 .output
 .vercel
