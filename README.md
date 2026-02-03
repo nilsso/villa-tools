@@ -1,5 +1,14 @@
 # SvelteKit Prisma template
 
+Featuring the following tools and packages:
+
+- [Prisma](https://www.prisma.io/)
+- [Valibot](https://valibot.dev/)
+- [Valimock](https://github.com/Saeris/valimock/tree/main?tab=readme-ov-file)
+- [Prisma Valibot Generator](https://github.com/omar-dulaimi/prisma-valibot-generator)
+
+Authentication built following [Lucia](https://lucia-auth.com/sessions/basic)
+
 ## Setup
 
 ```bash

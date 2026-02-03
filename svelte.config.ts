@@ -12,7 +12,7 @@ const config: Config = {
 	},
 	compilerOptions: {
 		experimental: {
-			async: true
+			// async: true
 		}
 	}
 };

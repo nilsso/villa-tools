@@ -1,7 +1,5 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
-	import { Toaster } from '$lib/components/ui/sonner';
-	import { ModeWatcher } from 'mode-watcher';
 	import '../app.css';
 
 	let { children } = $props();
@@ -12,5 +10,3 @@
 </svelte:head>
 
 {@render children?.()}
-<ModeWatcher />
-<Toaster richColors />

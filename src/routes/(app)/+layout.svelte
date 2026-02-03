@@ -1,30 +1,41 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import { MoonIcon, SunIcon } from '@lucide/svelte/icons';
-	import { toggleMode } from 'mode-watcher';
+	import { page } from '$app/state';
+	import Header from '$lib/components/layout/Header.svelte';
+	import { Toaster } from '$lib/components/ui/sonner';
+	import { delay } from 'es-toolkit';
+	import { ModeWatcher, toggleMode } from 'mode-watcher';
+	import { toast } from 'svelte-sonner';
+	import { getFlash } from 'sveltekit-flash-message';
+	import { match } from 'ts-pattern';
 
-	let { children } = $props();
+	let { data, children } = $props();
+
+	const flash = getFlash(page);
+
+	$effect(() => {
+		if ($flash) {
+			delay(100).then(() => {
+				match($flash)
+					.with({ type: 'success' }, ({ message }) => toast.success(message))
+					.with({ type: 'error' }, ({ message }) => toast.error(message))
+					.exhaustive();
+			});
+		}
+	});
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			toggleMode();
+		}
+	}
 </script>
 
-<div class="flex min-h-screen flex-col">
-	<header class="h-header flex items-center justify-between border-b p-2">
-		<div class="flex items-center gap-4">
-			<Button variant="link" href={resolve('/')}>Home</Button>
-		</div>
-		<div class="flex items-center gap-4">
-			<Button onclick={toggleMode} variant="ghost" size="icon" class="relative overflow-clip">
-				<SunIcon
-					class="absolute translate-x-0 opacity-100 !transition-[translate,opacity] duration-350 dark:-translate-x-full dark:opacity-0"
-				/>
-				<MoonIcon
-					class="absolute translate-x-full opacity-0 !transition-[translate,opacity] duration-350 dark:translate-x-0 dark:opacity-100"
-				/>
-				<span class="sr-only">Toggle theme</span>
-			</Button>
-		</div>
-	</header>
-	<main class="@container container mx-auto flex flex-1 flex-col py-8">
-		{@render children?.()}
-	</main>
-</div>
+<svelte:document onkeydown={handleKeydown} />
+
+<Header user={data.user} />
+<main class="@container container mx-auto max-w-5xl p-4 lg:py-6">
+	{@render children?.()}
+</main>
+<ModeWatcher />
+<Toaster richColors />

@@ -3,6 +3,72 @@ generator client {
   output   = "../generated/prisma"
 }
 
+generator valibot {
+  provider = "prisma-valibot-generator"
+  output   = "../generated/valibot"
+}
+
 datasource db {
   provider = "sqlite"
+}
+
+enum UserGroup {
+  ADMIN
+  MODERATOR
+  USER
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  group          UserGroup
+  password_hash  String
+  password_reset Boolean   @default(false)
+  created_at     DateTime  @default(now())
+
+  sessions      Session[]
+  old_passwords UserOldPassword[]
+}
+
+model UserOldPassword {
+  user_id       String
+  password_hash String
+  created_at    DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@id([user_id, password_hash])
+}
+
+model Session {
+  id         String   @id
+  user_id    String
+  expires_at DateTime
+
+  user User @relation(fields: [user_id], references: [id])
+}
+
+model School {
+  id   String @id @default(uuid())
+  name String
+
+  rosters Roster[]
+}
+
+enum Season {
+  SPRING
+  SUMMER
+  FALL
+  WINTER
+}
+
+model Roster {
+  id        String @id @default(uuid())
+  school_id String
+  name      String
+  year      Int
+  season    Season
+  url       String
+
+  school School @relation(fields: [school_id], references: [id])
 }
