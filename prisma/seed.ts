@@ -1,13 +1,14 @@
 import 'dotenv/config';
+
 import { faker } from '@faker-js/faker';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { range } from 'es-toolkit';
 import * as v from 'valibot';
 import { Valimock } from 'valimock';
-import { PrismaClient } from '../generated/prisma/client';
-import * as models from '../generated/prisma/models';
-import * as schemas from '../generated/valibot';
-import { createUser, type CreateUserInput, type CreateUserResult } from '../src/lib/server/auth';
+import { PrismaClient } from '../src/generated/prisma/client';
+import * as models from '../src/generated/prisma/models';
+import * as schemas from '../src/generated/valibot';
+import { hashPassword } from '../src/lib/server/password';
 
 const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -31,46 +32,36 @@ export function mockSchool(opts?: { numRosters?: number }): models.SchoolUncheck
 	};
 }
 
-async function createSuperUser(data: CreateUserInput): Promise<CreateUserResult> {
-	const res = await createUser(data);
-	if (!res.success) throw new Error();
-	await prisma.user.update({
-		where: { id: res.user.id },
-		data: { super: true },
-	});
-	return res;
-}
-
 async function main() {
 	await prisma.$transaction([prisma.session.deleteMany(), prisma.user.deleteMany()]);
 
-	await createSuperUser({
-		email: 'nils@villa.net',
-		group: 'ADMIN',
-		password: 'password',
-	});
-	await createSuperUser({
-		email: 'nicole@villa.net',
-		group: 'ADMIN',
-		password: 'password',
-	});
-	await createUser({
-		email: 'admin@villa.net',
-		group: 'ADMIN',
-		password: '',
-		requireReset: true,
-	});
-	await createUser({
-		email: 'moderator@villa.net',
-		group: 'MODERATOR',
-		password: '',
-		requireReset: true,
-	});
-	await createUser({
-		email: 'user@villa.net',
-		group: 'USER',
-		password: '',
-		requireReset: true,
+	await prisma.user.createMany({
+		data: [
+			{
+				email: 'nils@villa.net',
+				group: 'ADMIN',
+				password_hash: await hashPassword('password'),
+				super: true,
+			},
+			{
+				email: 'admin@villa.net',
+				group: 'ADMIN',
+				password_hash: await hashPassword(''),
+				password_reset: true,
+			},
+			{
+				email: 'moderator@villa.net',
+				group: 'MODERATOR',
+				password_hash: await hashPassword(''),
+				password_reset: true,
+			},
+			{
+				email: 'user@villa.net',
+				group: 'USER',
+				password_hash: await hashPassword(''),
+				password_reset: true,
+			},
+		],
 	});
 
 	// await Promise.all([prisma.roster.deleteMany(), prisma.school.deleteMany()]);

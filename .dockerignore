@@ -1,7 +1,7 @@
 node_modules
 
 # Database
-src/generated
+generated
 sqlite.db
 
 # Output

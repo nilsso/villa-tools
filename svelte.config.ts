@@ -9,7 +9,7 @@ const config: Config = {
 	kit: {
 		adapter: adapter({}),
 		alias: {
-			$generated: './generated',
+			$generated: './src/generated',
 		},
 	},
 	compilerOptions: {

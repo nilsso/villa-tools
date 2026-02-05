@@ -1,6 +1,5 @@
 import * as prisma from '$lib/server/prisma';
 import { fromDate, getLocalTimeZone, now as getNow } from '@internationalized/date';
-import { hash, verify } from '@node-rs/argon2';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
 import type { RequestEvent } from '@sveltejs/kit';
@@ -8,24 +7,19 @@ import { omit } from 'es-toolkit';
 import * as v from 'valibot';
 import type { CreateUserInput, Session, User } from '../auth';
 import { CreateUserSchema } from '../auth';
+import { hashPassword, verifyPasswordHash } from './password';
 
 export { CreateUserSchema } from '../auth';
 export type { Session, User, CreateUserInput } from '../auth';
 
-/** Hash a password. */
-export async function hashPassword(password: string): Promise<string> {
-	return await hash(password, {
-		memoryCost: 19456,
-		timeCost: 2,
-		outputLen: 32,
-		parallelism: 1,
-	});
-}
-
-/** Verify password with password hash. */
-export async function verifyPasswordHash(passwordHash: string, password: string): Promise<boolean> {
-	return await verify(passwordHash, password);
-}
+// TODO:
+// I should definitely keep breaking this out into smaller files.
+// I had to break out password.ts for seed.ts to work
+// Since this module imports svelte stuff.
+//
+// TODO:
+// Probably should change the suffix any module that imports something
+// SvelteKit related like aliases ($lib) from ".ts" to ".svelte.ts"
 
 /** Create user result. */
 export type CreateUserResult =
