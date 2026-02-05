@@ -1,8 +1,25 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { TOOLS, type MenuItem } from '$lib/components/layout/menu-items';
 	import * as Card from '$lib/components/ui/card';
 	import { ArrowUpRightIcon } from '@lucide/svelte';
 </script>
+
+{#snippet MenuItemCard({ label, description, placeholder }: MenuItem)}
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>{label}</Card.Title>
+			{#if description}
+				<Card.Description>{description}</Card.Description>
+			{/if}
+			{#if !placeholder}
+				<Card.Action>
+					<ArrowUpRightIcon class="size-4" />
+				</Card.Action>
+			{/if}
+		</Card.Header>
+	</Card.Root>
+{/snippet}
 
 <div class="space-y-6">
 	<div class="flex items-start justify-between">
@@ -12,21 +29,14 @@
 		</div>
 	</div>
 	<div class="grid gap-4 sm:grid-cols-2">
-		<a href={resolve('/rosters')}>
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>Rosters</Card.Title>
-					<Card.Description>Links to school rosters.</Card.Description>
-					<Card.Action><ArrowUpRightIcon class="size-4" /></Card.Action>
-				</Card.Header>
-			</Card.Root>
-		</a>
-		<Card.Root>
-			<Card.Header>
-				<Card.Title>Inventory</Card.Title>
-				<Card.Description>Inventory check-out system.</Card.Description>
-				<Card.Action><ArrowUpRightIcon class="size-4" /></Card.Action>
-			</Card.Header>
-		</Card.Root>
+		{#each TOOLS as item, i (i)}
+			{#if !item.placeholder}
+				<a href={resolve(item.path)}>
+					{@render MenuItemCard(item)}
+				</a>
+			{:else}
+				{@render MenuItemCard(item)}
+			{/if}
+		{/each}
 	</div>
 </div>

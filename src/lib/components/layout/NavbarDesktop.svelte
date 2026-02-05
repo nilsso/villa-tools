@@ -32,8 +32,8 @@
 						<NavigationMenu.Trigger>{title}</NavigationMenu.Trigger>
 						<NavigationMenu.Content>
 							<div class="grid w-[300px] p-2">
-								{#each items as { href, label, description }, j (j)}
-									<NavigationMenu.Link href={resolve(href)}>
+								{#each items as { path, label, description }, j (j)}
+									<NavigationMenu.Link href={resolve(path)}>
 										<div class="font-medium">{label}</div>
 										{#if description}
 											<div class="text-muted-foreground">{description}</div>
@@ -44,9 +44,9 @@
 						</NavigationMenu.Content>
 					</NavigationMenu.Item>
 				{:else}
-					{@const { title, href } = group}
+					{@const { title, path } = group}
 					<NavigationMenu.Item>
-						<NavigationMenu.Link href={resolve(href)}>
+						<NavigationMenu.Link href={resolve(path)}>
 							{title}
 						</NavigationMenu.Link>
 					</NavigationMenu.Item>

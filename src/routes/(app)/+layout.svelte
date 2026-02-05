@@ -1,21 +1,23 @@
 <script lang="ts">
+	import * as Alert from '$lib/components/ui/alert';
 	import { page } from '$app/state';
 	import Header from '$lib/components/layout/Header.svelte';
-	import { Toaster } from '$lib/components/ui/sonner';
 	import { delay } from 'es-toolkit';
-	import { ModeWatcher, toggleMode } from 'mode-watcher';
+	import { toggleMode } from 'mode-watcher';
 	import { toast } from 'svelte-sonner';
 	import { getFlash } from 'sveltekit-flash-message';
 	import { match } from 'ts-pattern';
+	import { TriangleAlertIcon } from '@lucide/svelte';
 
 	let { data, children } = $props();
 
 	const flash = getFlash(page);
 
 	$effect(() => {
-		if ($flash) {
+		const t = $flash?.toast;
+		if (t) {
 			delay(100).then(() => {
-				match($flash)
+				match(t)
 					.with({ type: 'success' }, ({ message }) => toast.success(message))
 					.with({ type: 'error' }, ({ message }) => toast.error(message))
 					.exhaustive();
@@ -29,13 +31,27 @@
 			toggleMode();
 		}
 	}
+
+	// TODO: flash.banner should be expanded
 </script>
 
 <svelte:document onkeydown={handleKeydown} />
 
 <Header user={data.user} />
 <main class="@container container mx-auto max-w-5xl p-4 lg:py-6">
+	{#if $flash?.banner}
+		{@const { title, description } = $flash.banner}
+		<Alert.Root>
+			<TriangleAlertIcon />
+			<Alert.Title>
+				{title}
+			</Alert.Title>
+			{#if description}
+				<Alert.Description>
+					{description}
+				</Alert.Description>
+			{/if}
+		</Alert.Root>
+	{/if}
 	{@render children?.()}
 </main>
-<ModeWatcher />
-<Toaster richColors />

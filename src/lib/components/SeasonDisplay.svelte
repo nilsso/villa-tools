@@ -2,7 +2,7 @@
 	import type { Season } from '$generated/prisma/enums';
 	import { cn } from '$lib/utils';
 	import { LeafIcon, SnowflakeIcon, SproutIcon, SunIcon } from '@lucide/svelte';
-	import { startCase } from 'es-toolkit';
+	import { upperFirst } from 'es-toolkit';
 
 	export type Props = {
 		season: Season;
@@ -35,5 +35,5 @@
 
 <div class="flex items-center">
 	<Icon class={cn('mr-2 inline-block size-4', iconClass)} />
-	{startCase(season)}
+	{upperFirst(season)}
 </div>

@@ -5,8 +5,12 @@ import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
 import type { RequestEvent } from '@sveltejs/kit';
 import { omit } from 'es-toolkit';
-import type { User, UserGroup, Session } from '../auth';
-import { someAsync } from '$lib/utils';
+import * as v from 'valibot';
+import type { CreateUserInput, Session, User } from '../auth';
+import { CreateUserSchema } from '../auth';
+
+export { CreateUserSchema } from '../auth';
+export type { Session, User, CreateUserInput } from '../auth';
 
 /** Hash a password. */
 export async function hashPassword(password: string): Promise<string> {
@@ -23,14 +27,6 @@ export async function verifyPasswordHash(passwordHash: string, password: string)
 	return await verify(passwordHash, password);
 }
 
-/** Verify password is not one of password hashes. */
-export async function verifyFreshPassword(
-	oldPasswordHashes: string[],
-	password: string
-): Promise<boolean> {
-	return !(await someAsync(oldPasswordHashes, async (ph) => verifyPasswordHash(ph, password)));
-}
-
 /** Create user result. */
 export type CreateUserResult =
 	| {
@@ -45,17 +41,16 @@ export type CreateUserResult =
 	  };
 
 /** Create user. */
-export async function createUser(
-	email: string,
-	group: UserGroup,
-	passwordHash: string
-): Promise<CreateUserResult> {
+export async function createUser(data: CreateUserInput): Promise<CreateUserResult> {
+	const validated = v.parse(CreateUserSchema, data);
+	const passwordHash = await hashPassword(validated.password);
 	try {
 		const user = await prisma.client.user.create({
 			data: {
-				email: email,
-				group,
+				email: validated.email,
+				group: validated.group,
 				password_hash: passwordHash,
+				password_reset: validated.requireReset,
 			},
 		});
 		return {
@@ -76,62 +71,144 @@ export async function createUser(
 	}
 }
 
-/** Find user by ID. */
-export async function findUser(id: string): Promise<User | undefined> {
-	const user = await prisma.client.user.findUnique({ where: { id } });
-	if (user) return omit(user, ['password_hash']);
-}
-
-/** Find user by email. */
-export async function findUserByEmail(email: string): Promise<User | undefined> {
-	const user = await prisma.client.user.findUnique({ where: { email } });
-	if (user) return omit(user, ['password_hash']);
+/** Delete user. */
+export async function deleteUser(userId: string): Promise<boolean> {
+	const user = await prisma.client.session.findUnique({ where: { id: userId } });
+	if (!user) {
+		return false;
+	}
+	await prisma.client.$transaction([
+		prisma.client.session.deleteMany({ where: { user_id: userId } }),
+		prisma.client.user.delete({ where: { id: userId } }),
+	]);
+	return true;
 }
 
 /** Fetch user password hash. */
 export async function fetchUserPasswordHash(userId: string): Promise<string> {
-	const user = await prisma.client.user.findUnique({ where: { id: userId } });
-	if (user == null) throw new Error('Invalid user ID');
-	return user.password_hash;
-}
-
-/** Fetch user old password hashes. */
-export async function fetchOldPasswordHashes(userId: string): Promise<string[]> {
-	const { password_hash: current } = await prisma.client.user.findUniqueOrThrow({
+	const { password_hash } = await prisma.client.user.findUniqueOrThrow({
 		where: { id: userId },
 		select: { password_hash: true },
 	});
-	const old = await prisma.client.userOldPassword.findMany({
-		where: { user_id: userId },
-		select: { password_hash: true },
-	});
-	return [current, ...old.map((d) => d.password_hash)];
+	return password_hash;
 }
 
-/** Update user password hash.
- *
- * Sets the user's password hash and creates a new {UserOldPassword} from the old password hash.
+/* NOTE:
+ * Decided to drop old password tracking.
+ * The following was the implementation that did actually work.
+ */
+// /** Fetch user old password hashes. */
+// export async function fetchOldPasswordHashes(userId: string): Promise<string[]> {
+// 	const { password_hash: current } = await prisma.client.user.findUniqueOrThrow({
+// 		where: { id: userId },
+// 		select: { password_hash: true },
+// 	});
+// 	const old = await prisma.client.userOldPassword.findMany({
+// 		where: { user_id: userId },
+// 		select: { password_hash: true },
+// 	});
+// 	return [current, ...old.map((d) => d.password_hash)];
+// }
+//
+// /** Verify password is not one of password hashes. */
+// export async function verifyFreshPassword(
+// 	oldPasswordHashes: string[],
+// 	password: string
+// ): Promise<boolean> {
+// 	return !(await someAsync(oldPasswordHashes, async (ph) => verifyPasswordHash(ph, password)));
+// }
+//
+// /** Update user password.
+//  *
+//  * Updates the password hash of the user and adds the old password hash
+//  * to the {UserOldPassword} list of old password hashes.
+//  *
+//  * NOTE:
+//  * This handles when the new password is the same as the old, in which case no operations are performed.
+//  *
+//  * WARNING:
+//  * Does not care if the new password is stale (is in {UserOldPassword}).
+//  *
+//  * @param userId - User ID.
+//  * @param newPassword - The new password.
+//  */
+// export async function updateUserPassword(userId: string, newPassword: string): Promise<void> {
+// 	const oldPasswordHash = await fetchUserPasswordHash(userId);
+// 	const samePassword = await verifyPasswordHash(oldPasswordHash, newPassword);
+// 	console.debug({ samePassword });
+// 	// If the new password is same as the old do nothing
+// 	if (!samePassword) {
+// 		// Else upsert old password hash and update user password hash
+// 		const newPasswordHash = await hashPassword(newPassword);
+// 		await prisma.client.$transaction([
+// 			prisma.client.userOldPassword.upsert({
+// 				where: {
+// 					user_id_password_hash: {
+// 						user_id: userId,
+// 						password_hash: oldPasswordHash,
+// 					},
+// 				},
+// 				create: {
+// 					user_id: userId,
+// 					password_hash: oldPasswordHash,
+// 				},
+// 				update: {},
+// 			}),
+// 			prisma.client.user.update({
+// 				where: { id: userId },
+// 				data: {
+// 					password_hash: newPasswordHash,
+// 					password_reset: false,
+// 				},
+// 			}),
+// 		]);
+// 	}
+// }
+
+/** Verify user password.
  *
  * @param userId - User ID.
- * @param newPasswordHash - The new password hash.
+ * @param password - Password to verify.
  */
-export async function updateUserPasswordHash(userId: string, newPasswordHash: string) {
-	const oldPasswordHash = await fetchUserPasswordHash(userId);
-	await prisma.client.$transaction([
-		prisma.client.userOldPassword.create({
-			data: {
-				user_id: userId,
-				password_hash: oldPasswordHash,
-			},
-		}),
-		prisma.client.user.update({
+export async function verifyUserPassword(userId: string, password: string): Promise<boolean> {
+	const passwordHash = await fetchUserPasswordHash(userId);
+	return await verifyPasswordHash(passwordHash, password);
+}
+
+/** Change user password.
+ *
+ * @param userId - User ID.
+ * @param newPassword - The new password.
+ *
+ * @returns If update was successful.
+ */
+export async function changeUserPassword(
+	userId: string,
+	newPassword: string,
+	opts?: {
+		resetFlag?: boolean;
+		invalidateSessions?: boolean;
+	}
+): Promise<boolean> {
+	const newPasswordHash = await hashPassword(newPassword);
+	try {
+		await prisma.client.user.update({
 			where: { id: userId },
 			data: {
 				password_hash: newPasswordHash,
-				password_reset: false,
+				password_reset: opts?.resetFlag,
 			},
-		}),
-	]);
+		});
+		if (opts?.invalidateSessions) {
+			await prisma.client.session.deleteMany({
+				where: { user_id: userId },
+			});
+		}
+		return true;
+	} catch (err) {
+		if (prisma.isNotFound(err)) return false;
+		throw err;
+	}
 }
 
 /** Generate random session token. */

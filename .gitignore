@@ -2,7 +2,7 @@ node_modules
 
 # Database
 generated
-db.sqlite
+sqlite.db
 
 # Output
 .output

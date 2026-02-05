@@ -3,10 +3,11 @@ import { checkUserGroup, type UserGroup } from '$lib/auth';
 import type { Nullish } from '$lib/utils';
 
 export type MenuItem = {
-	href: Pathname;
+	path: Pathname;
 	label: string;
 	description?: string;
 	group?: UserGroup;
+	placeholder?: boolean;
 };
 
 export type MenuGroup = {
@@ -14,36 +15,39 @@ export type MenuGroup = {
 	group?: UserGroup;
 } & (
 	| {
-			href: Pathname;
+			path: Pathname;
 	  }
 	| {
 			items: MenuItem[];
 	  }
 );
 
+export const TOOLS: MenuItem[] = [
+	{
+		path: '/rosters',
+		label: 'Rosters',
+		description: 'Links to school rosters.',
+	},
+	// {
+	// 	path: '/inventory',
+	// 	label: 'Inventory',
+	// 	description: 'Inventory check-out system.',
+	// 	placeholder: true,
+	// },
+];
+
 export const MENU_GROUPS: MenuGroup[] = [
 	{
 		title: 'Tools',
 		group: 'USER',
-		items: [
-			{
-				href: '/rosters',
-				label: 'Rosters',
-				description: 'Links to school rosters.',
-			},
-			{
-				href: '/',
-				label: 'Inventory',
-				description: 'Inventory check-out system.',
-			},
-		],
+		items: TOOLS,
 	},
 	{
 		title: 'Admin',
 		group: 'ADMIN',
 		items: [
 			{
-				href: '/users',
+				path: '/users',
 				label: 'Users',
 				description: 'Manage site users.',
 			},

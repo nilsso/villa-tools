@@ -13,10 +13,9 @@
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from '$generated/prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { DATABASE_URL } from '$env/static/private';
 
-// import { DATABASE_URL } from '$env/static/private';
-
-const adapter = new PrismaBetterSqlite3({ url: 'file:./db.sqlite' });
+const adapter = new PrismaBetterSqlite3({ url: DATABASE_URL });
 
 export const client = new PrismaClient({ adapter });
 
@@ -40,7 +39,7 @@ export const ErrorCode = {
 	 * > An operation failed because it depends on one or
 	 * > more records that were required but not found. {cause}"
 	 */
-	NOT_FOUND: 'P2025'
+	NOT_FOUND: 'P2025',
 } as const;
 
 /** Common Prisma error code values. */
@@ -65,3 +64,6 @@ export function isPrismaError<T extends ErrorCodeValue>(
 ): err is PrismaError<T> {
 	return err instanceof PrismaClientKnownRequestError && err.code == code;
 }
+
+/** Is value a "Not found" error? */
+export const isNotFound = (err: unknown) => isPrismaError(err, ErrorCode.NOT_FOUND);

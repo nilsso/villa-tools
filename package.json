@@ -5,31 +5,38 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build",
+		"build": "svelte-kit sync && vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint ."
+		"lint": "prettier --check . && eslint .",
+		"start": "node build"
+	},
+	"dependencies": {
+		"@flydotio/litestream": "^1.0.1",
+		"@node-rs/argon2": "^2.0.2"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",
 		"@eslint/js": "^9.38.0",
 		"@faker-js/faker": "^10.2.0",
+		"@flydotio/dockerfile": "^0.7.10",
 		"@internationalized/date": "^3.10.1",
 		"@lucide/svelte": "^0.561.0",
-		"@node-rs/argon2": "^2.0.2",
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
 		"@prisma/adapter-better-sqlite3": "7.3.0",
 		"@prisma/client": "^7.3.0",
 		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/adapter-node": "^5.5.2",
 		"@sveltejs/kit": "^2.47.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@tailwindcss/vite": "^4.1.14",
 		"@tanstack/table-core": "^8.21.3",
 		"@types/node": "^22",
+		"@vitejs/plugin-basic-ssl": "^2.1.4",
 		"bits-ui": "^2.15.4",
 		"clsx": "^2.1.1",
 		"dotenv": "^17.2.3",
@@ -64,5 +71,9 @@
 		"valimock": "^1.4.0",
 		"vaul-svelte": "1.0.0-next.7",
 		"vite": "^7.1.10"
+	},
+	"dockerfile": {
+		"litestream": true
 	}
 }
+

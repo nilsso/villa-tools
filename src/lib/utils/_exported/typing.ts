@@ -4,6 +4,9 @@ export type Nullish<T> = T | null | undefined;
 /** Any non-function type. */
 export type NotFunction = null | undefined | number | string | boolean | symbol | bigint | object;
 
+/** Maybe a promise?. */
+export type MaybePromise<T> = T | Promise<T>;
+
 /** Phantom attribute for marking type parameters as used.
  *
  * @example

@@ -34,9 +34,9 @@
 	</Drawer.Trigger>
 	<Drawer.Content>
 		<div class="grid gap-4 p-4">
-			{@render MobileLink({ href: '/', label: 'Home', icon: HouseIcon })}
+			{@render MobileLink({ path: '/', label: 'Home', icon: HouseIcon })}
 			{#if user}
-				{@render MobileLink({ href: '/user', label: 'User', icon: SettingsIcon })}
+				{@render MobileLink({ path: '/user', label: 'User', icon: SettingsIcon })}
 				<form method="POST" action={resolve('/(app)/(public)/logout')}>
 					<button type="submit" class="flex items-center gap-2 text-2xl font-medium">
 						<LogOutIcon />
@@ -55,13 +55,13 @@
 						<p class="text-muted-foreground">{title}</p>
 					{/if}
 					<div class="grid gap-2">
-						{#each items as { href, label }, j (j)}
-							{@render MobileLink({ href, label })}
+						{#each items as { path, label }, j (j)}
+							{@render MobileLink({ path: path, label })}
 						{/each}
 					</div>
 				{:else}
-					{@const { title, href } = group}
-					{@render MobileLink({ href, label: title })}
+					{@const { title, path } = group}
+					{@render MobileLink({ path: path, label: title })}
 				{/if}
 			{/each}
 		</div>
@@ -69,16 +69,16 @@
 </Drawer.Root>
 
 {#snippet MobileLink({
-	href,
+	path,
 	label,
 	icon: Icon,
 }: {
-	href: Pathname;
+	path: Pathname;
 	label: string;
 	icon?: Component<IconProps>;
 })}
 	<a
-		href={resolve(href)}
+		href={resolve(path)}
 		class="flex items-center gap-2 text-2xl font-medium"
 		onclick={() => (open = false)}
 	>

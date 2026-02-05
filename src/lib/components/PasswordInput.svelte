@@ -26,7 +26,7 @@
 <InputGroup.Root class={className}>
 	<InputGroup.Input {...restProps} bind:value type={showPassword ? 'text' : 'password'} />
 	<InputGroup.Addon align="inline-end">
-		<InputGroup.Button size="icon-xs" onclick={() => (showPassword = !showPassword)}>
+		<InputGroup.Button size="icon-xs" onclick={() => (showPassword = !showPassword)} tabindex={-1}>
 			<EyeIcon class={{ 'stroke-blue-500': showPassword }} />
 		</InputGroup.Button>
 	</InputGroup.Addon>

@@ -1,7 +1,11 @@
 import { PasswordSchema } from '$lib/auth';
 import * as v from 'valibot';
 
-export const ResetPasswordSchema = v.pipe(
+export const UpdateUserSchema = v.object({
+	email: v.pipe(v.string(), v.email('Must be a valid email.')),
+});
+
+export const ChangePasswordSchema = v.pipe(
 	v.object({
 		oldPassword: v.string(),
 		newPassword: PasswordSchema,
@@ -16,3 +20,5 @@ export const ResetPasswordSchema = v.pipe(
 		['newPasswordConfirm']
 	)
 );
+
+export type ChangePasswordSchema = v.InferOutput<typeof ChangePasswordSchema>;

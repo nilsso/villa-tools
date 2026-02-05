@@ -24,20 +24,10 @@ model User {
   group          UserGroup
   password_hash  String
   password_reset Boolean   @default(false)
+  super          Boolean   @default(false)
   created_at     DateTime  @default(now())
 
-  sessions      Session[]
-  old_passwords UserOldPassword[]
-}
-
-model UserOldPassword {
-  user_id       String
-  password_hash String
-  created_at    DateTime @default(now())
-
-  user User @relation(fields: [user_id], references: [id])
-
-  @@id([user_id, password_hash])
+  sessions Session[]
 }
 
 model Session {

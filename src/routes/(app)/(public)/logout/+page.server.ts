@@ -17,8 +17,10 @@ export const actions: Actions = {
 		return flashRedirect(
 			'/login',
 			{
-				type: 'success',
-				message: 'Logout successful.',
+				toast: {
+					type: 'success',
+					message: 'Logout successful.',
+				},
 			},
 			event
 		);

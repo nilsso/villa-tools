@@ -10,7 +10,16 @@ declare global {
 			session: Session | null;
 		}
 		interface PageData {
-			flash?: { type: 'success' | 'error'; message: string };
+			flash?: {
+				toast?: {
+					type: 'success' | 'error';
+					message: string;
+				};
+				banner?: {
+					title: string;
+					description?: string;
+				};
+			};
 		}
 		// interface PageState {}
 		// interface Platform {}

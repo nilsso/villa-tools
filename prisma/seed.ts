@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { faker } from '@faker-js/faker';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { range } from 'es-toolkit';
@@ -6,9 +7,9 @@ import { Valimock } from 'valimock';
 import { PrismaClient } from '../generated/prisma/client';
 import * as models from '../generated/prisma/models';
 import * as schemas from '../generated/valibot';
-import { createUser, hashPassword } from '../src/lib/server/auth';
+import { createUser, type CreateUserInput, type CreateUserResult } from '../src/lib/server/auth';
 
-const adapter = new PrismaBetterSqlite3({ url: 'file:./db.sqlite' });
+const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 const valimock = new Valimock({
 	stringMap: {
@@ -16,7 +17,7 @@ const valimock = new Valimock({
 	},
 });
 
-function mockSchool(opts?: { numRosters?: number }): models.SchoolUncheckedCreateInput {
+export function mockSchool(opts?: { numRosters?: number }): models.SchoolUncheckedCreateInput {
 	const numRosters = opts?.numRosters ?? faker.number.int({ min: 1, max: 3 });
 	return {
 		...valimock.mock(schemas.SchoolSchema),
@@ -30,13 +31,49 @@ function mockSchool(opts?: { numRosters?: number }): models.SchoolUncheckedCreat
 	};
 }
 
-const ADMIN_EMAIL = 'admin@example.net';
-const ADMIN_PASSWORD = 'password';
+async function createSuperUser(data: CreateUserInput): Promise<CreateUserResult> {
+	const res = await createUser(data);
+	if (!res.success) throw new Error();
+	await prisma.user.update({
+		where: { id: res.user.id },
+		data: { super: true },
+	});
+	return res;
+}
 
 async function main() {
-	await createUser(ADMIN_EMAIL, 'ADMIN', await hashPassword(ADMIN_PASSWORD));
+	await prisma.$transaction([prisma.session.deleteMany(), prisma.user.deleteMany()]);
 
-	await Promise.all([prisma.roster.deleteMany(), prisma.school.deleteMany()]);
+	await createSuperUser({
+		email: 'nils@villa.net',
+		group: 'ADMIN',
+		password: 'password',
+	});
+	await createSuperUser({
+		email: 'nicole@villa.net',
+		group: 'ADMIN',
+		password: 'password',
+	});
+	await createUser({
+		email: 'admin@villa.net',
+		group: 'ADMIN',
+		password: '',
+		requireReset: true,
+	});
+	await createUser({
+		email: 'moderator@villa.net',
+		group: 'MODERATOR',
+		password: '',
+		requireReset: true,
+	});
+	await createUser({
+		email: 'user@villa.net',
+		group: 'USER',
+		password: '',
+		requireReset: true,
+	});
+
+	// await Promise.all([prisma.roster.deleteMany(), prisma.school.deleteMany()]);
 	// const numSchools = faker.number.int({ min: 1, max: 5 });
 	// await Promise.all(range(numSchools).map(() => prisma.school.create({ data: mockSchool() })));
 }

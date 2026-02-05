@@ -2,7 +2,7 @@ import {
 	createSession,
 	generateSessionToken,
 	setSessionTokenCookie,
-	verifyPasswordHash,
+	verifyUserPassword,
 } from '$lib/server/auth';
 import prisma from '$lib/server/prisma';
 import { redirect } from '@sveltejs/kit';
@@ -31,11 +31,13 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 		const { email, password } = form.data;
+
 		// Fetch and verify user.
 		const user = await prisma.user.findUnique({ where: { email } });
-		if (!user || !(await verifyPasswordHash(user.password_hash, password))) {
-			return message(form, 'Email not found or password does not match.', { status: 400 });
+		if (!(user && (await verifyUserPassword(user.id, password)))) {
+			return message(form, 'Email not found or incorrect password.', { status: 400 });
 		}
+
 		// Create session.
 		const sessionToken = generateSessionToken();
 		const session = await createSession(user.id, sessionToken);
@@ -43,8 +45,10 @@ export const actions: Actions = {
 		return flashRedirect(
 			redirectTo(event.url),
 			{
-				type: 'success',
-				message: 'Login successful.',
+				toast: {
+					type: 'success',
+					message: 'Login successful.',
+				},
 			},
 			event
 		);
