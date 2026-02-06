@@ -7,7 +7,7 @@ import type { Config } from '@sveltejs/kit';
 const config: Config = {
 	preprocess: vitePreprocess(),
 	kit: {
-		adapter: adapter({}),
+		adapter: adapter(),
 		alias: {
 			$generated: './src/generated',
 		},

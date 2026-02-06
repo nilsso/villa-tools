@@ -1,15 +1,19 @@
-import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
-import basicSsl from '@vitejs/plugin-basic-ssl';
+// import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit(), basicSsl()],
+	plugins: [
+		tailwindcss(),
+		sveltekit(),
+		// basicSsl(),
+	],
 	server: {
 		fs: {
 			allow: ['generated'],
 		},
-		host: true,
+		// host: true,
 	},
 	build: {
 		rollupOptions: {
