@@ -1,11 +1,11 @@
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  output   = "../generated/prisma"
 }
 
 generator valibot {
   provider = "prisma-valibot-generator"
-  output   = "../src/generated/valibot"
+  output   = "../generated/valibot"
 }
 
 datasource db {

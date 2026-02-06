@@ -10,10 +10,10 @@
  * import * as prisma from '$lib/prisma';
  * ```
  */
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import { PrismaClient } from '$generated/prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { env } from '$env/dynamic/private';
+import { PrismaClient } from '$generated/prisma/client';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 const adapter = new PrismaBetterSqlite3({ url: env.DATABASE_URL });
 

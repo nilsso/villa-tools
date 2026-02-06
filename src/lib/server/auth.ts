@@ -10,7 +10,7 @@ import { CreateUserSchema } from '../auth';
 import { hashPassword, verifyPasswordHash } from './password';
 
 export { CreateUserSchema } from '../auth';
-export type { Session, User, CreateUserInput } from '../auth';
+export type { CreateUserInput, Session, User } from '../auth';
 
 // TODO:
 // I should definitely keep breaking this out into smaller files.
@@ -67,7 +67,8 @@ export async function createUser(data: CreateUserInput): Promise<CreateUserResul
 
 /** Delete user. */
 export async function deleteUser(userId: string): Promise<boolean> {
-	const user = await prisma.client.session.findUnique({ where: { id: userId } });
+	const user = await prisma.client.user.findUnique({ where: { id: userId } });
+	console.debug({ userId, user });
 	if (!user) {
 		return false;
 	}

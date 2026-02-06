@@ -62,3 +62,52 @@ If starting from scratch, running an initial migration will create this file.
 ```bash
 `pnpm prisma migrate dev --name init`
 ```
+
+## fly.io
+
+Things I had to do
+
+The package needs to include "onlyBuiltDependencies" for better-sqlite3 bindings
+
+```
+"pnpm": {
+  "onlyBuiltDependencies": [
+    "better-sqlite3",
+    "@prisma/engines",
+    "esbuild",
+    "prisma"
+  ]
+}
+```
+
+Makefile needs to, in order:
+
+- svelte-kit sync
+- generate prisma client
+- build
+
+```
+RUN pnpm svelte-kit sync
+
+# Generate Prisma Client
+COPY prisma .
+RUN npx prisma generate
+
+# Copy application code
+COPY . .
+
+# Build application
+RUN pnpm run build
+```
+
+Database URL needs to be in fly.toml environment variables
+but also in build args since prisma depends on it
+
+```
+[build]
+  [build.args]
+    DATABASE_URL = "file:/app/sqlite.db"
+
+[env]
+  DATABASE_URL = "file:/app/sqlite.db"
+```
